@@ -22,4 +22,5 @@ D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\pro
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\websocket\WebSocketConfig.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\buffer\DialysisDataBuffer.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\hardware\SimulatedHardwareService.java
+D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\service\MemoryGuardianService.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\filter\MedianMeanFilter.java

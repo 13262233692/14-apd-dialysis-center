@@ -6,7 +6,9 @@ import com.apd.dialysis.model.DeviceCommand;
 import com.apd.dialysis.model.DeviceStatus;
 import com.apd.dialysis.model.DialysisDataPoint;
 import com.apd.dialysis.service.DialysisDataAggregator;
+import com.apd.dialysis.service.MemoryGuardianService;
 import com.apd.dialysis.service.PipelineOrchestrator;
+import com.apd.dialysis.websocket.DialysisWebSocketBroadcaster;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ public class DialysisController {
     private final DialysisDataBuffer dataBuffer;
     private final DialysisDataAggregator aggregator;
     private final PipelineOrchestrator orchestrator;
+    private final MemoryGuardianService memoryGuardian;
+    private final DialysisWebSocketBroadcaster wsBroadcaster;
 
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getStatus() {
@@ -39,9 +43,24 @@ public class DialysisController {
         status.put("timestamp", Instant.now());
         status.put("bufferSize", dataBuffer.size());
         status.put("totalProduced", dataBuffer.getTotalProduced());
+        status.put("totalFlushed", dataBuffer.getTotalFlushed());
+        status.put("totalDropped", dataBuffer.getTotalDropped());
+        status.put("totalDroppedByHeapPressure", dataBuffer.getTotalDroppedByHeapPressure());
         status.put("dropRate", dataBuffer.getDropRate());
+        status.put("heapEmergency", dataBuffer.isHeapEmergency());
+        status.put("heapUsageRatio", dataBuffer.getLastHeapUsageRatio());
         status.put("spikeSuppressionRate", aggregator.getSpikeSuppressionRate());
         status.put("spikesSuppressed", aggregator.getSpikeSuppressedCount());
+
+        status.put("wsQueueSize", wsBroadcaster.getQueueSize());
+        status.put("wsActiveClients", wsBroadcaster.getActiveClientCount());
+        status.put("wsTotalEnqueued", wsBroadcaster.getTotalEnqueued());
+        status.put("wsTotalSent", wsBroadcaster.getTotalSent());
+        status.put("wsTotalDropped", wsBroadcaster.getTotalDropped());
+        status.put("wsBackpressureActive", wsBroadcaster.isBackpressureActive());
+
+        MemoryGuardianService.MemorySnapshot mem = memoryGuardian.getSnapshot();
+        status.put("memory", mem);
 
         if (latest != null) {
             status.put("currentDataPoint", latest);
@@ -113,5 +132,15 @@ public class DialysisController {
     @GetMapping("/pipeline")
     public ResponseEntity<String> getPipelineStatus() {
         return ResponseEntity.ok(orchestrator.getPipelineStatus());
+    }
+
+    @GetMapping("/ws/clients")
+    public ResponseEntity<List<DialysisWebSocketBroadcaster.ClientSessionInfo>> getWsClients() {
+        return ResponseEntity.ok(wsBroadcaster.getClientSessionInfos());
+    }
+
+    @GetMapping("/memory")
+    public ResponseEntity<MemoryGuardianService.MemorySnapshot> getMemorySnapshot() {
+        return ResponseEntity.ok(memoryGuardian.getSnapshot());
     }
 }
