@@ -4,12 +4,16 @@ D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\con
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\model\DeviceCommand.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\buffer\HardwareEventBus.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\hardware\HardwareService.java
+D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\service\TurbidityAlertService.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\ApdDialysisApplication.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\protocol\canopen\CanOpenProtocolManager.java
+D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\controller\TurbidityAlertController.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\websocket\DialysisWebSocketBroadcaster.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\config\ApdProperties.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\controller\SystemController.java
+D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\model\PeritonitisAlert.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\config\WebConfig.java
+D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\algorithm\IsolationForestTurbidityDetector.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\service\DialysisDataAggregator.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\model\DialysisDataPoint.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\model\DeviceStatus.java
@@ -24,3 +28,4 @@ D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\buf
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\hardware\SimulatedHardwareService.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\service\MemoryGuardianService.java
 D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\filter\MedianMeanFilter.java
+D:\SOLO-0621-1\14-apd-dialysis-center\backend\src\main\java\com\apd\dialysis\model\TurbidityReading.java

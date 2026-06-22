@@ -33,3 +33,19 @@ export const PHASE_COLORS = {
   DRAIN: '#ff8a65',
   COMPLETE: '#81c784'
 }
+
+export const ALERT_LEVEL_LABELS = {
+  NONE: '正常',
+  LOW: '低风险',
+  MEDIUM: '中风险',
+  HIGH: '高风险',
+  CRITICAL: '危急'
+}
+
+export const ALERT_LEVEL_COLORS = {
+  NONE: '#4caf50',
+  LOW: '#8bc34a',
+  MEDIUM: '#ffc107',
+  HIGH: '#ff5722',
+  CRITICAL: '#e53935'
+}

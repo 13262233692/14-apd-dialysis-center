@@ -14,6 +14,14 @@ export const dialysisStore = reactive({
     spikeSuppressionRate: 0,
     spikesSuppressed: 0,
     bufferSize: 0
+  },
+  alert: {
+    active: false,
+    data: null,
+    acknowledged: false,
+    showPulse: false,
+    showModal: false,
+    triggeredAt: null
   }
 })
 
@@ -24,7 +32,6 @@ function onDataPoint(message) {
   try {
     const point = JSON.parse(message.body)
     dialysisStore.latest = point
-
     if (dialysisStore.history.length >= MAX_HISTORY) {
       dialysisStore.history.shift()
     }
@@ -51,15 +58,37 @@ function onStatus(message) {
   }
 }
 
+function onPeritonitisAlert(message) {
+  try {
+    const alert = JSON.parse(message.body)
+    console.error('[ALERT] 腹膜炎预警:', alert)
+    dialysisStore.alert.data = alert
+    dialysisStore.alert.active = true
+    dialysisStore.alert.acknowledged = !!alert.acknowledged
+    dialysisStore.alert.triggeredAt = alert.timestamp || new Date().toISOString()
+    if (!alert.acknowledged) {
+      dialysisStore.alert.showPulse = true
+      dialysisStore.alert.showModal = true
+      try {
+        if (window.speechSynthesis) {
+          const u = new SpeechSynthesisUtterance('警告，检测到腹膜炎可疑症状，请立即停机确诊')
+          u.lang = 'zh-CN'
+          u.volume = 1.0
+          window.speechSynthesis.speak(u)
+        }
+      } catch (_) {}
+    }
+  } catch (e) {
+    console.error('Failed to parse alert:', e)
+  }
+}
+
 export function connectWebSocket() {
   if (stompClient && stompClient.connected) {
     return
   }
-
   disconnectWebSocket()
-
   const brokerUrl = WS_HTTP_URL
-
   stompClient = new Client({
     brokerURL: brokerUrl,
     reconnectDelay: 3000,
@@ -69,10 +98,10 @@ export function connectWebSocket() {
     onConnect: () => {
       dialysisStore.connected = true
       console.log('[WS] Connected to dialysis stream')
-
       stompClient.subscribe('/topic/dialysis/datapoint', onDataPoint)
       stompClient.subscribe('/topic/dialysis/devices', onDevices)
       stompClient.subscribe('/topic/dialysis/status', onStatus)
+      stompClient.subscribe('/topic/dialysis/alerts/peritonitis', onPeritonitisAlert)
     },
     onDisconnect: () => {
       dialysisStore.connected = false
@@ -86,7 +115,6 @@ export function connectWebSocket() {
       console.error('[WS] STOMP error:', frame.headers['message'])
     }
   })
-
   try {
     stompClient.activate()
   } catch (e) {
@@ -106,6 +134,20 @@ export function disconnectWebSocket() {
     reconnectTimer = null
   }
   dialysisStore.connected = false
+}
+
+export function acknowledgePeritonitisAlert() {
+  dialysisStore.alert.acknowledged = true
+  dialysisStore.alert.showPulse = false
+}
+
+export function dismissPeritonitisAlert() {
+  dialysisStore.alert.active = false
+  dialysisStore.alert.data = null
+  dialysisStore.alert.acknowledged = false
+  dialysisStore.alert.showPulse = false
+  dialysisStore.alert.showModal = false
+  dialysisStore.alert.triggeredAt = null
 }
 
 export function formatTime(isoString) {

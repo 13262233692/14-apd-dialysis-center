@@ -1,5 +1,13 @@
 <template>
   <div class="dashboard">
+    <AlertPulseOverlay :show="dialysisStore.alert.showPulse && !dialysisStore.alert.acknowledged" :isCritical="true" />
+    <PeritonitisAlertModal
+      :show="dialysisStore.alert.showModal"
+      :alert="dialysisStore.alert.data"
+      :acknowledged="dialysisStore.alert.acknowledged"
+      @emergency-stop="handleEmergencyStop"
+    />
+
     <header class="dashboard-header">
       <div class="brand">
         <div class="logo">◉</div>
@@ -30,6 +38,8 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import NetUFChart from './components/NetUFChart.vue'
 import StatusPanel from './components/StatusPanel.vue'
 import ControlPanel from './components/ControlPanel.vue'
+import AlertPulseOverlay from './components/AlertPulseOverlay.vue'
+import PeritonitisAlertModal from './components/PeritonitisAlertModal.vue'
 import { connectWebSocket, disconnectWebSocket, dialysisStore } from './store.js'
 import { dialysisApi } from './api.js'
 
@@ -40,19 +50,32 @@ function updateTime() {
   currentTime.value = new Date().toLocaleString('zh-CN', { hour12: false })
 }
 
+function handleEmergencyStop() {
+  console.warn('[APP] Emergency stop triggered')
+}
+
 onMounted(async () => {
   updateTime()
   timer = setInterval(updateTime, 1000)
 
   try {
-    const [latest, history, devices] = await Promise.all([
+    const [latest, history, devices, alert] = await Promise.all([
       dialysisApi.getLatest(),
       dialysisApi.getHistory(120),
-      dialysisApi.getDevices()
+      dialysisApi.getDevices(),
+      dialysisApi.getTurbidityAlert()
     ])
     dialysisStore.latest = latest
     dialysisStore.history = history
     dialysisStore.devices = devices
+    if (alert && alert.alertId && alert.severity === 'CRITICAL' && !alert.acknowledged) {
+      dialysisStore.alert.data = alert
+      dialysisStore.alert.active = true
+      dialysisStore.alert.acknowledged = false
+      dialysisStore.alert.showPulse = true
+      dialysisStore.alert.showModal = true
+      dialysisStore.alert.triggeredAt = alert.timestamp
+    }
   } catch (e) {
     console.warn('Initial data load failed:', e)
   }

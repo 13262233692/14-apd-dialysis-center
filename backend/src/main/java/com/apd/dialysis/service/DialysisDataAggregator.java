@@ -95,6 +95,23 @@ public class DialysisDataAggregator {
             netUf = outflowVolumeMl - inflowVolumeMl;
         }
 
+        double transmittance = 98.0;
+        double a420 = 0.04, a540 = 0.03, a660 = 0.02, a720 = 0.02;
+        String spectralHex = "04030202";
+        double drainElapsedMin = 0.0;
+        double drainTargetMin = 22.0;
+        if (hardwareService instanceof SimulatedHardwareService) {
+            SimulatedHardwareService sim = (SimulatedHardwareService) hardwareService;
+            transmittance = sim.getCurrentTransmittance();
+            a420 = sim.getCurrentAbsorbance420();
+            a540 = sim.getCurrentAbsorbance540();
+            a660 = sim.getCurrentAbsorbance660();
+            a720 = sim.getCurrentAbsorbance720();
+            spectralHex = sim.getCurrentSpectralHex();
+            drainElapsedMin = sim.getDrainElapsedMinutes();
+            drainTargetMin = sim.getDrainTargetMinutes();
+        }
+
         return DialysisDataPoint.builder()
                 .timestamp(now)
                 .inflowVolumeMl(Math.round(inflowVolumeMl * 10) / 10.0)
@@ -106,6 +123,16 @@ public class DialysisDataAggregator {
                 .dialysateTemperatureC(Math.round(temp * 10) / 10.0)
                 .phase(phase)
                 .sensorQuality(quality)
+                .transmittancePercent(Math.round(transmittance * 100) / 100.0)
+                .absorbance420nm(Math.round(a420 * 10000) / 10000.0)
+                .absorbance540nm(Math.round(a540 * 10000) / 10000.0)
+                .absorbance660nm(Math.round(a660 * 10000) / 10000.0)
+                .absorbance720nm(Math.round(a720 * 10000) / 10000.0)
+                .spectralHexSignature(spectralHex)
+                .drainElapsedMinutes(Math.round(drainElapsedMin * 100) / 100.0)
+                .drainTargetMinutes(Math.round(drainTargetMin * 100) / 100.0)
+                .turbidityAlertLevel(com.apd.dialysis.model.TurbidityReading.AlertLevel.NONE)
+                .turbidityAnomalyScore(0.0)
                 .build();
     }
 

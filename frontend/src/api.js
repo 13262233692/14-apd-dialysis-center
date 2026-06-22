@@ -34,5 +34,20 @@ export const dialysisApi = {
   },
   health() {
     return api.get('/system/health').then(r => r.data)
+  },
+  getTurbidityAlert() {
+    return api.get('/turbidity/alert/current').then(r => r.data).catch(() => null)
+  },
+  acknowledgeAlert(alertId) {
+    return api.post(`/turbidity/alert/${alertId}/acknowledge`).then(r => r.data)
+  },
+  dismissAlert() {
+    return api.post('/turbidity/alert/dismiss').then(r => r.data)
+  },
+  getTurbidityHistory72h() {
+    return api.get('/turbidity/history/72h').then(r => r.data).catch(() => [])
+  },
+  getDrainFlowHistory() {
+    return api.get('/turbidity/history/flow').then(r => r.data).catch(() => [])
   }
 }

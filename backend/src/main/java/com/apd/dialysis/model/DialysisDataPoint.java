@@ -33,11 +33,43 @@ public class DialysisDataPoint {
 
     private SensorQuality sensorQuality;
 
+    private double transmittancePercent;
+
+    private double absorbance420nm;
+    private double absorbance540nm;
+    private double absorbance660nm;
+    private double absorbance720nm;
+
+    private String spectralHexSignature;
+
+    private double drainElapsedMinutes;
+    private double drainTargetMinutes;
+
+    private TurbidityReading.AlertLevel turbidityAlertLevel;
+    private double turbidityAnomalyScore;
+
     public enum DialysisPhase {
         IDLE, FILL, DWELL, DRAIN, COMPLETE
     }
 
     public enum SensorQuality {
         EXCELLENT, GOOD, FAIR, POOR, NOISY
+    }
+
+    public TurbidityReading toTurbidityReading() {
+        return TurbidityReading.builder()
+                .timestamp(timestamp != null ? timestamp : Instant.now())
+                .transmittancePercent(transmittancePercent)
+                .absorbance420nm(absorbance420nm)
+                .absorbance540nm(absorbance540nm)
+                .absorbance660nm(absorbance660nm)
+                .absorbance720nm(absorbance720nm)
+                .spectralHexSignature(spectralHexSignature)
+                .drainFlowRateMlPerMin(outflowFlowRateMlPerMin)
+                .drainElapsedMinutes(drainElapsedMinutes)
+                .drainTargetMinutes(drainTargetMinutes)
+                .anomalyScore(turbidityAnomalyScore)
+                .alertLevel(turbidityAlertLevel != null ? turbidityAlertLevel : TurbidityReading.AlertLevel.NONE)
+                .build();
     }
 }

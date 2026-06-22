@@ -52,6 +52,16 @@ public class SimulatedHardwareService implements HardwareService {
     private volatile boolean pumpRunning = false;
     private volatile boolean heaterRunning = false;
 
+    private volatile double baseTransmittance = 98.0;
+    private volatile double baseAbsorbance420 = 0.04;
+    private volatile double baseAbsorbance540 = 0.03;
+    private volatile double baseAbsorbance660 = 0.02;
+    private volatile double baseAbsorbance720 = 0.02;
+    private volatile boolean peritonitisTriggered = false;
+    private volatile long peritonitisTriggerAt = 0L;
+    private volatile double drainStartTime = 0.0;
+    private volatile double extraDrainDelayFactor = 1.0;
+
     private volatile boolean running = false;
 
     @PostConstruct
@@ -177,9 +187,18 @@ public class SimulatedHardwareService implements HardwareService {
         currentAbdominalVolumeMl = 0.0;
         pumpRunning = true;
         heaterRunning = true;
+        baseTransmittance = 98.0;
+        baseAbsorbance420 = 0.04;
+        baseAbsorbance540 = 0.03;
+        baseAbsorbance660 = 0.02;
+        baseAbsorbance720 = 0.02;
+        peritonitisTriggered = false;
+        peritonitisTriggerAt = System.currentTimeMillis() + 90000L;
+        extraDrainDelayFactor = 1.0;
+        drainStartTime = 0.0;
         updatePumpStatus();
         updateHeaterStatus();
-        log.info("Dialysis cycle started - FILL phase");
+        log.info("Dialysis cycle started - FILL phase. Peritonitis will trigger in 90s for demo.");
     }
 
     private void stopDialysisCycle() {
@@ -237,7 +256,35 @@ public class SimulatedHardwareService implements HardwareService {
         long elapsedMs = System.currentTimeMillis() - cycleStartTime.get();
         double elapsedSec = elapsedMs / 1000.0;
         double inflowRateMlPerSec = pumpFlowRate / 60.0;
-        double outflowRateMlPerSec = (pumpFlowRate * 0.9) / 60.0;
+
+        long now = System.currentTimeMillis();
+        if (!peritonitisTriggered && now >= peritonitisTriggerAt && peritonitisTriggerAt > 0) {
+            peritonitisTriggered = true;
+            extraDrainDelayFactor = 1.8;
+            log.warn("!!! SIMULATED PERITONITIS TRIGGERED: transmittance cliff-drop + drain time extended by 80%");
+        }
+
+        double outflowRateMlPerSec;
+        if (currentPhase == DialysisDataPoint.DialysisPhase.DRAIN) {
+            double factor = peritonitisTriggered ? 0.45 : 0.9;
+            outflowRateMlPerSec = (pumpFlowRate * factor) / 60.0;
+        } else {
+            outflowRateMlPerSec = (pumpFlowRate * 0.9) / 60.0;
+        }
+
+        if (peritonitisTriggered) {
+            baseTransmittance = 45.0 + random.nextGaussian() * 5;
+            baseAbsorbance420 = 0.62 + random.nextGaussian() * 0.05;
+            baseAbsorbance540 = 0.48 + random.nextGaussian() * 0.04;
+            baseAbsorbance660 = 0.35 + random.nextGaussian() * 0.03;
+            baseAbsorbance720 = 0.28 + random.nextGaussian() * 0.03;
+        } else {
+            baseTransmittance = 96.0 + random.nextGaussian() * 2;
+            baseAbsorbance420 = 0.04 + Math.abs(random.nextGaussian() * 0.01);
+            baseAbsorbance540 = 0.03 + Math.abs(random.nextGaussian() * 0.008);
+            baseAbsorbance660 = 0.02 + Math.abs(random.nextGaussian() * 0.005);
+            baseAbsorbance720 = 0.02 + Math.abs(random.nextGaussian() * 0.005);
+        }
 
         if (currentPhase == DialysisDataPoint.DialysisPhase.FILL) {
             double amount = inflowRateMlPerSec * 0.1;
@@ -257,6 +304,7 @@ public class SimulatedHardwareService implements HardwareService {
             if (elapsedSec / 60.0 >= targetDwellMinutes) {
                 currentPhase = DialysisDataPoint.DialysisPhase.DRAIN;
                 pumpRunning = true;
+                drainStartTime = System.currentTimeMillis() / 1000.0;
                 updatePumpStatus();
                 cycleStartTime.set(System.currentTimeMillis());
                 log.info("DWELL complete, entering DRAIN phase");
@@ -279,6 +327,28 @@ public class SimulatedHardwareService implements HardwareService {
         bagWeightSensor1 = 5000.0 - totalInflowMl;
         bagWeightSensor2 = totalOutflowMl;
     }
+
+    public double getCurrentTransmittance() { return baseTransmittance; }
+    public double getCurrentAbsorbance420() { return baseAbsorbance420; }
+    public double getCurrentAbsorbance540() { return baseAbsorbance540; }
+    public double getCurrentAbsorbance660() { return baseAbsorbance660; }
+    public double getCurrentAbsorbance720() { return baseAbsorbance720; }
+    public String getCurrentSpectralHex() {
+        int v420 = Math.max(0, Math.min(255, (int)(baseAbsorbance420 * 255)));
+        int v540 = Math.max(0, Math.min(255, (int)(baseAbsorbance540 * 255)));
+        int v660 = Math.max(0, Math.min(255, (int)(baseAbsorbance660 * 255)));
+        int v720 = Math.max(0, Math.min(255, (int)(baseAbsorbance720 * 255)));
+        return String.format("%02X%02X%02X%02X", v420, v540, v660, v720);
+    }
+    public double getDrainElapsedMinutes() {
+        if (currentPhase != DialysisDataPoint.DialysisPhase.DRAIN) return 0.0;
+        return Math.max(0.0, (System.currentTimeMillis() / 1000.0 - drainStartTime) / 60.0);
+    }
+    public double getDrainTargetMinutes() {
+        double base = targetInflowMl / 90.0;
+        return peritonitisTriggered ? base * extraDrainDelayFactor : base;
+    }
+    public boolean isPeritonitisTriggered() { return peritonitisTriggered; }
 
     private void generateWeightSensorReadings() {
         double noise1 = 0;

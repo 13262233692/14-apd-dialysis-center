@@ -3,6 +3,7 @@ package com.apd.dialysis.websocket;
 import com.apd.dialysis.buffer.DialysisDataBuffer;
 import com.apd.dialysis.config.ApdProperties;
 import com.apd.dialysis.model.DialysisDataPoint;
+import com.apd.dialysis.model.PeritonitisAlert;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -37,6 +38,7 @@ public class DialysisWebSocketBroadcaster {
     public static final String TOPIC_DATA_POINT = "/topic/dialysis/datapoint";
     public static final String TOPIC_STATUS = "/topic/dialysis/status";
     public static final String TOPIC_DEVICES = "/topic/dialysis/devices";
+    public static final String TOPIC_ALERT_PERITONITIS = "/topic/dialysis/alerts/peritonitis";
 
     private static final int DEFAULT_QUEUE_CAPACITY = 2000;
     private static final int HIGH_WATER_MARK = 1500;
@@ -217,6 +219,16 @@ public class DialysisWebSocketBroadcaster {
             messagingTemplate.convertAndSend(TOPIC_DEVICES, devices);
         } catch (Exception e) {
             log.warn("Failed to broadcast devices", e);
+        }
+    }
+
+    public void broadcastAlert(PeritonitisAlert alert) {
+        if (alert == null) return;
+        try {
+            messagingTemplate.convertAndSend(TOPIC_ALERT_PERITONITIS, alert);
+            log.error("BROADCAST CRITICAL ALERT: id={}, severity={}", alert.getAlertId(), alert.getSeverity());
+        } catch (Exception e) {
+            log.warn("Failed to broadcast peritonitis alert", e);
         }
     }
 

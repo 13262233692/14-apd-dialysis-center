@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/system")
-@CrossOrigin(origins = "*")
 public class SystemController {
 
     @GetMapping("/health")

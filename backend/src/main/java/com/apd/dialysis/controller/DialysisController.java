@@ -24,7 +24,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/dialysis")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class DialysisController {
 
     private final HardwareService hardwareService;
