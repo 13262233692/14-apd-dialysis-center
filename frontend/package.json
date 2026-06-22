@@ -1,0 +1,26 @@
+{
+  "name": "apd-dialysis-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "智能腹膜透析机云端流控中心 - 患者端",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "echarts": "^5.4.3",
+    "vue-echarts": "^6.6.8",
+    "@stomp/stompjs": "^7.0.0",
+    "sockjs-client": "^1.6.1",
+    "axios": "^1.6.2",
+    "net": "^1.0.2",
+    "sockjs": "^0.3.24"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.8"
+  }
+}
